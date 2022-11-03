@@ -1,18 +1,17 @@
-data Color = Red | Blue
+data Color = Red | Blue deriving Show
 
 main :: IO ()
 main = do
-    let board = newBoard
-    print (board :: [[Maybe Color c]])
+    let board = newBoard in print board
     return ()
 
+newBoard :: [[Maybe Color]]
 newBoard = [
-    [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
-    [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
-    [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
-    [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
-    [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
-    [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing]]
+    (replicate 20 Nothing),
+    (replicate 20 Nothing),
+    (replicate 20 Nothing),
+    (replicate 20 Nothing),
+    (replicate 20 Nothing)]
 
 -- find valid spaces
 -- valid space
