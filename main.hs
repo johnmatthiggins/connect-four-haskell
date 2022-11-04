@@ -48,10 +48,19 @@ isVerticalVictor color board =
 
 isHorizontalVictor :: Color -> [[Maybe Color]] -> Bool
 isHorizontalVictor color board =
-    any (\x -> (longestRepetition x) >= 4) board
+    any (\x -> (longestRepetition color x) >= 4) board
+
+isDiagonalVictor :: Color -> [[Maybe Color]] -> Bool
+isDiagonalVictor color board =
+    any (\x -> (longestRepetition color x) >= 4) (
+            (filter (\x -> (length x) >= 4) (getDiagonalSlices board))
+        )
 
 boardPoints :: [[Maybe Color]] -> [(Int, Int)]
 boardPoints board = matrixPoints (length board) (length (transpose board))
 
 matrixPoints :: Int -> Int -> [(Int, Int)]
 matrixPoints xlen ylen = [(xlen, ylen) | x <- [0..xlen], y <- [0..ylen]]
+
+getDiagonalSlices :: [[Maybe Color]] -> [[Maybe Color]]
+getDiagonalSlices board = [[Just Red]]
