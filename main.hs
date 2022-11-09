@@ -1,11 +1,13 @@
 import Text.Printf
+import Text.Read
 import Data.List
 
-data Color = Red | Blue deriving Show
+data Color = Red | Blue deriving (Show, Eq)
 
 main :: IO ()
 main = do
-    let board = (newBoard 6 7) in printf "%s\n" (sprintBoard board)
+    let board = (newBoard 6 7)
+    getNextMove board
     return ()
 
 newBoard :: Int -> Int -> [[Maybe Color]]
@@ -39,12 +41,11 @@ longestRepetition color row = 3
 isVictor :: Color -> [[Maybe Color]] -> Bool
 isVictor color board =
     isVerticalVictor color board
-    || isHorizontalVictor color board
-    || isDiagonalVictor color board
+        || isHorizontalVictor color board || isDiagonalVictor color board
 
 isVerticalVictor :: Color -> [[Maybe Color]] -> Bool
 isVerticalVictor color board =
-    any (\x -> (longestRepetition x) >= 4) (transpose board)
+    any (\x -> (longestRepetition color x) >= 4) (transpose board)
 
 isHorizontalVictor :: Color -> [[Maybe Color]] -> Bool
 isHorizontalVictor color board =
@@ -53,8 +54,7 @@ isHorizontalVictor color board =
 isDiagonalVictor :: Color -> [[Maybe Color]] -> Bool
 isDiagonalVictor color board =
     any (\x -> (longestRepetition color x) >= 4) (
-            (filter (\x -> (length x) >= 4) (getDiagonalSlices board))
-        )
+            (filter (\x -> (length x) >= 4) (getDiagonalSlices board)))
 
 boardPoints :: [[Maybe Color]] -> [(Int, Int)]
 boardPoints board = matrixPoints (length board) (length (transpose board))
@@ -64,3 +64,14 @@ matrixPoints xlen ylen = [(xlen, ylen) | x <- [0..xlen], y <- [0..ylen]]
 
 getDiagonalSlices :: [[Maybe Color]] -> [[Maybe Color]]
 getDiagonalSlices board = [[Just Red]]
+
+getNextMove :: [[Maybe Color]] -> IO (Int)
+getNextMove board = do
+    putStr "Pick a column: "
+    line <- getLine
+    let input = readMaybe line :: Maybe Int
+
+    case input of 
+        Just d  -> d
+        Nothing -> getNextMove board
+
