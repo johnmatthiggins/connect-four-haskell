@@ -12,23 +12,29 @@ data GameState = GameState { currentPlayer :: Color
 main :: IO ()
 main = do
     let board = (newBoard 6 7)
+    let startState = GameState { currentPlayer = Red
+                                 , board = board
+                                 , humanPlayer = Red
+                                 , cpuPlayer = Blue
+                               }
 
     -- Red player starts the game first.
-    playGame state Red
+    let endState = playGame startState
     return ()
 
-playGame :: GameState -> Color -> IO()
-playGame state player =
-    case (isVictor player state . board) of
+playGame :: GameState -> IO()
+playGame state =
+    case (getVictor state) of
         Just color -> case color of
             Red -> putStrLn "Red player wins!"
             Blue -> putStrLn "Blue player wins!"
         Nothing -> do
             let nextState = makeMove state
-            putStrLn (sprintBoard (nextState . board))
-            playGame nextState (nextTurn color)
+            putStrLn (sprintBoard (board nextState))
+            playGame nextState
 
 makeMove :: GameState -> GameState
+makeMove state = state
 
 newBoard :: Int -> Int -> [[Maybe Color]]
 newBoard x y = replicate x (replicate y Nothing)
@@ -56,12 +62,57 @@ isSpaceFilledWith color space =
 
 -- Fix this later
 longestRepetition :: Color -> [Maybe Color] -> Int
-longestRepetition color row = 3
+longestRepetition color row = do
+    let validRepetitions = (any (\l -> (all (\x -> x == Just color) l))
+        (separateIntoRepetitions row))
 
-isVictor :: Color -> [[Maybe Color]] -> Bool
-isVictor color board =
-    isVerticalVictor color board
-        || isHorizontalVictor color board || isDiagonalVictor color board
+separateIntoRepetitions :: [a] -> [[a]]
+separateIntoRepetitions list =
+    separateIntoRepetitionsRec [[(first list)]] (tail list)
+
+separateIntoRepetitionsRec :: [[a]] -> [a] -> [[a]]
+separateIntoRepetitionsRec repetitions list =
+    if (length list) != 0 then
+        if (head list) == (last2d repetitions) then
+            separateIntoRepetitionsRec
+                (append (append (head list) (last2d repetitions)) (popLast repetitions)) (tail list)
+        else
+            separateIntoRepetitionsRec (append [(head list)] (repetitions)) (tail list)
+    else
+        repetitions
+    
+-- Longest common sub sequence
+-- * Separate all of them into their unbreaking subsequences.
+--      * First save the first element
+--      * Then if the element is the same as the second element,
+--              return it in a list with the second element.
+
+last2d :: [[a]] -> a
+last2d list2d =
+    (last (last list2d)
+
+popLast :: [a] -> [a]
+popLast list =
+    (reverse (first (reverse list)))
+
+getVictor :: GameState -> Maybe Color
+getVictor state =
+    let
+        redVictor = isVerticalVictor Red (board state)
+            || isHorizontalVictor Red (board state)
+            || isDiagonalVictor Red (board state)
+
+        blueVictor = isVerticalVictor Blue (board state)
+            || isHorizontalVictor Blue (board state)
+            || isDiagonalVictor Blue (board state)
+    in
+        if redVictor then
+            Just Red
+        else
+            if blueVictor then
+                Just Blue
+            else
+                Nothing
 
 isVerticalVictor :: Color -> [[Maybe Color]] -> Bool
 isVerticalVictor color board =
@@ -85,10 +136,11 @@ matrixPoints xlen ylen = [(xlen, ylen) | x <- [0..xlen], y <- [0..ylen]]
 getDiagonalSlices :: [[Maybe Color]] -> [[Maybe Color]]
 getDiagonalSlices board = [[Just Red]]
 
-getNextMove :: [[Maybe Color]] -> IO(Int)
+getNextMove :: [[Maybe Color]] -> IO(Integer)
 getNextMove board = do
     putStr "Pick a column: "
-    let num = (getLine) >>= readMaybe
+    line <- getLine
+    let num = readMaybe line :: Maybe Integer
 
     case num of 
         Just d  -> return (d)
