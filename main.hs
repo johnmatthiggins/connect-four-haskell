@@ -3,12 +3,32 @@ import Text.Read
 import Data.List
 
 data Color = Red | Blue deriving (Show, Eq)
+data GameState = GameState { currentPlayer :: Color
+                           , board :: [[Maybe Color]]
+                           , cpuPlayer ::  Color
+                           , humanPlayer :: Color
+                           }
 
 main :: IO ()
 main = do
     let board = (newBoard 6 7)
-    getNextMove board
+
+    -- Red player starts the game first.
+    playGame state Red
     return ()
+
+playGame :: GameState -> Color -> IO()
+playGame state player =
+    case (isVictor player state . board) of
+        Just color -> case color of
+            Red -> putStrLn "Red player wins!"
+            Blue -> putStrLn "Blue player wins!"
+        Nothing -> do
+            let nextState = makeMove state
+            putStrLn (sprintBoard (nextState . board))
+            playGame nextState (nextTurn color)
+
+makeMove :: GameState -> GameState
 
 newBoard :: Int -> Int -> [[Maybe Color]]
 newBoard x y = replicate x (replicate y Nothing)
@@ -65,13 +85,18 @@ matrixPoints xlen ylen = [(xlen, ylen) | x <- [0..xlen], y <- [0..ylen]]
 getDiagonalSlices :: [[Maybe Color]] -> [[Maybe Color]]
 getDiagonalSlices board = [[Just Red]]
 
-getNextMove :: [[Maybe Color]] -> IO (Int)
+getNextMove :: [[Maybe Color]] -> IO(Int)
 getNextMove board = do
     putStr "Pick a column: "
-    line <- getLine
-    let input = readMaybe line :: Maybe Int
+    let num = (getLine) >>= readMaybe
 
-    case input of 
-        Just d  -> d
+    case num of 
+        Just d  -> return (d)
         Nothing -> getNextMove board
 
+nextTurn :: Color -> Color
+nextTurn current =
+    if current == Red then
+        Blue
+    else
+        Red
