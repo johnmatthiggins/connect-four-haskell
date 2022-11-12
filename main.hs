@@ -63,37 +63,32 @@ isSpaceFilledWith color space =
 -- Fix this later
 longestRepetition :: Color -> [Maybe Color] -> Int
 longestRepetition color row = do
-    let validRepetitions = (any (\l -> (all (\x -> x == Just color) l))
-        (separateIntoRepetitions row))
+    let validRepetitions = any (\l -> (all (\x -> x == Just color) l)) (separateIntoRepetitions row)
+
+    if (length validRepetitions) == 0 then
+        0
+    else
+        (fold (\a b -> if a >= b then a else b)
+            (map (\x -> length x) validRepetitions))
 
 separateIntoRepetitions :: [a] -> [[a]]
-separateIntoRepetitions list =
-    separateIntoRepetitionsRec [[(first list)]] (tail list)
+separateIntoRepetitions list = separateIntoRepetitionsRec [[(first list)]] (tail list)
 
 separateIntoRepetitionsRec :: [[a]] -> [a] -> [[a]]
 separateIntoRepetitionsRec repetitions list =
     if (length list) != 0 then
         if (head list) == (last2d repetitions) then
-            separateIntoRepetitionsRec
-                (append (append (head list) (last2d repetitions)) (popLast repetitions)) (tail list)
+            separateIntoRepetitionsRec (append (append (head list) (last2d repetitions)) (popLast repetitions)) (tail list)
         else
             separateIntoRepetitionsRec (append [(head list)] (repetitions)) (tail list)
     else
         repetitions
     
--- Longest common sub sequence
--- * Separate all of them into their unbreaking subsequences.
---      * First save the first element
---      * Then if the element is the same as the second element,
---              return it in a list with the second element.
-
 last2d :: [[a]] -> a
-last2d list2d =
-    (last (last list2d)
+last2d list2d = (last (last list2d)
 
 popLast :: [a] -> [a]
-popLast list =
-    (reverse (first (reverse list)))
+popLast list = (reverse (tail (reverse list)))
 
 getVictor :: GameState -> Maybe Color
 getVictor state =
@@ -136,11 +131,11 @@ matrixPoints xlen ylen = [(xlen, ylen) | x <- [0..xlen], y <- [0..ylen]]
 getDiagonalSlices :: [[Maybe Color]] -> [[Maybe Color]]
 getDiagonalSlices board = [[Just Red]]
 
-getNextMove :: [[Maybe Color]] -> IO(Integer)
+getNextMove :: [[Maybe Color]] -> IO(Int)
 getNextMove board = do
     putStr "Pick a column: "
     line <- getLine
-    let num = readMaybe line :: Maybe Integer
+    let num = readMaybe line :: Maybe Int
 
     case num of 
         Just d  -> return (d)
