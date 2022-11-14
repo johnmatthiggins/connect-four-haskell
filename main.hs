@@ -62,30 +62,32 @@ isSpaceFilledWith color space =
 
 -- Fix this later
 longestRepetition :: Color -> [Maybe Color] -> Int
-longestRepetition color row = do
-    let validRepetitions = any (\l -> (all (\x -> x == Just color) l)) (separateIntoRepetitions row)
-
-    if (length validRepetitions) == 0 then
-        0
-    else
-        (fold (\a b -> if a >= b then a else b)
-            (map (\x -> length x) validRepetitions))
+longestRepetition color row =
+    let validRepetitions = (filter (\l -> (all (\x -> x == Just color) l)) (separateIntoRepetitions row))
+    in
+    if ((length validRepetitions) == 0) then
+            0
+        else
+            (foldl (\a b -> if a >= b then a else b) 0
+                (map (\x -> length x) validRepetitions))
 
 separateIntoRepetitions :: [a] -> [[a]]
-separateIntoRepetitions list = separateIntoRepetitionsRec [[(first list)]] (tail list)
+separateIntoRepetitions list = separateIntoRepetitionsRec [[(head list)]] (tail list)
 
 separateIntoRepetitionsRec :: [[a]] -> [a] -> [[a]]
 separateIntoRepetitionsRec repetitions list =
-    if (length list) != 0 then
+    if (length list) /= 0 then
         if (head list) == (last2d repetitions) then
-            separateIntoRepetitionsRec (append (append (head list) (last2d repetitions)) (popLast repetitions)) (tail list)
+            separateIntoRepetitionsRec (push (push (head list) (last2d repetitions)) (popLast repetitions)) (tail list)
         else
-            separateIntoRepetitionsRec (append [(head list)] (repetitions)) (tail list)
+            separateIntoRepetitionsRec (push [(head list)] (repetitions)) (tail list)
     else
         repetitions
-    
+
 last2d :: [[a]] -> a
-last2d list2d = (last (last list2d)
+last2d list2d = (last (last list2d))
+
+push e list = list ++ [e]
 
 popLast :: [a] -> [a]
 popLast list = (reverse (tail (reverse list)))
